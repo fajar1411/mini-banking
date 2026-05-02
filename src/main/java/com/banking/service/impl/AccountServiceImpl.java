@@ -102,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
                 .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
                 .count();
 
-        // disini saya mengambil balance menjadi satu saja untuk di gabungkan menjadi
+        // disini saya mengambil balance menjadi satu untuk di gabungkan menjadi
         // satu dan lalu di jumlahkan
         BigDecimal totalBalance = accounts.stream()
                 .map(Account::getBalance)
