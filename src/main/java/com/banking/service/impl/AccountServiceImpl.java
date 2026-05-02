@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.banking.dtos.request.DepositWithdrawRequest;
 import com.banking.dtos.response.AccountResponse;
+import com.banking.dtos.response.AccountSummaryResponse;
 import com.banking.entity.Account;
 import com.banking.entity.User;
 import com.banking.enums.AccountStatus;
@@ -88,6 +89,41 @@ public class AccountServiceImpl implements AccountService {
                 .balance(account.getBalance())
                 .status(account.getStatus())
                 .createdAt(account.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public AccountSummaryResponse getAccountSummary(User user) {
+        List<Account> accounts = accountRepository.findByUser(user.getId());
+
+        // disini saya memfilter account si user yang login untuk menghitung total akun
+        // yang aktif
+        long totalActive = accounts.stream()
+                .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
+                .count();
+
+        // disini saya mengambil balance menjadi satu saja untuk di gabungkan menjadi
+        // satu dan lalu di jumlahkan
+        BigDecimal totalBalance = accounts.stream()
+                .map(Account::getBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // disini langkah pertama saya memfilter akun yang aktif
+        // lalu di sorted itu saya menguruktkan dari yang terkecil ke terbesar
+        // lalu saya mengambil no akunnya
+        // untuk diambil data(nilai) pertama yang terbesar dari akun tersebut
+        String richestAccountNumber = accounts.stream()
+                .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
+                .sorted((a, b) -> b.getBalance().compareTo(a.getBalance()))
+                .map(Account::getAccountNumber)
+                .findFirst()
+                .orElse("Tidak ada akun aktif");
+
+        return AccountSummaryResponse.builder()
+                .totalAccounts(accounts.size())
+                .totalActiveAccounts((int) totalActive)
+                .totalBalance(totalBalance)
+                .richestAccountNumber(richestAccountNumber)
                 .build();
     }
 }

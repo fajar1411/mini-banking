@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.banking.dtos.request.DepositWithdrawRequest;
 import com.banking.dtos.response.AccountResponse;
+import com.banking.dtos.response.AccountSummaryResponse;
 import com.banking.entity.User;
 import com.banking.service.AccountService;
 
@@ -65,5 +66,11 @@ public class AccountController {
             @Valid @RequestBody DepositWithdrawRequest request) {
         AccountResponse response = accountService.withdraw(accountNumber, request);
         return ResponseEntity.ok(response);
+    }
+
+      @GetMapping("/summary")
+    public ResponseEntity<AccountSummaryResponse> getAccountSummary(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(accountService.getAccountSummary(user));
     }
 }
