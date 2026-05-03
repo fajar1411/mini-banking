@@ -109,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // disini langkah pertama saya memfilter akun yang aktif
-        // lalu di sorted itu saya menguruktkan dari yang terkecil ke terbesar
+        // lalu di sorted itu saya menguruktkan dari yang terbesar ke terkecil
         // lalu saya mengambil no akunnya
         // untuk diambil data(nilai) pertama yang terbesar dari akun tersebut
         String richestAccountNumber = accounts.stream()
