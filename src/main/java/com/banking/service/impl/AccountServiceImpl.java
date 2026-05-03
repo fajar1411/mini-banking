@@ -111,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
         // disini langkah pertama saya memfilter akun yang aktif
         // lalu di sorted itu saya menguruktkan dari yang terbesar ke terkecil
         // lalu saya mengambil no akunnya
-        // untuk diambil data(nilai) pertama yang terbesar dari akun tersebut
+        // untuk mengambil nomor akun yang terbesar balancenya dengan status active
         String richestAccountNumber = accounts.stream()
                 .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
                 .sorted((a, b) -> b.getBalance().compareTo(a.getBalance()))
