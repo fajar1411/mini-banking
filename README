@@ -1,0 +1,970 @@
+# Mini Banking Backend
+
+Backend service untuk aplikasi Mini Banking yang dibangun menggunakan Spring Boot. Aplikasi ini menyediakan REST API untuk autentikasi user, pengelolaan account, transaksi, expense sharing, settlement, dan fitur terkait lainnya.
+
+Project ini menggunakan JWT untuk autentikasi dan MySQL sebagai database.
+
+---
+
+## Tech Stack
+
+- Java 17
+- Spring Boot 3.4.5
+- Spring Security
+- Spring Data JPA
+- Hibernate
+- MySQL 8
+- JWT
+- Lombok
+- Maven
+- Docker
+- Docker Compose
+- Swagger / OpenAPI
+
+---
+
+## Features
+
+- User Registration
+- User Login
+- JWT Authentication
+- Role-based Authorization
+- Role User
+- Role Admin
+- Account Management
+- Transaction Management
+- Expense Management
+- Expense Sharing
+- Participant Management
+- Settlement Management
+- MySQL Database
+- Docker Support
+- Swagger API Documentation
+
+---
+
+## Project Structure
+
+```text
+src
+└── main
+    ├── java
+    │   └── com.banking
+    │       ├── config
+    │       ├── controller
+    │       ├── dto
+    │       │   ├── request
+    │       │   └── response
+    │       ├── entity
+    │       ├── enums
+    │       ├── exception
+    │       ├── repository
+    │       ├── security
+    │       ├── service
+    │       │   └── impl
+    │       └── MiniBankingApplication.java
+    │
+    └── resources
+        ├── application.properties
+        └── application-dev.properties
+```
+
+---
+
+# Requirements
+
+Pastikan aplikasi berikut sudah terinstall:
+
+- Java 17
+- Maven 3.8+
+- Docker
+- Docker Compose
+- Git
+
+Cek versi Java:
+
+```bash
+java -version
+```
+
+Cek Maven:
+
+```bash
+mvn -version
+```
+
+Cek Docker:
+
+```bash
+docker --version
+```
+
+Cek Docker Compose:
+
+```bash
+docker compose version
+```
+
+---
+
+# Running with Docker Compose
+
+Cara paling mudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
+
+Docker Compose akan menjalankan:
+
+1. MySQL Database
+2. Spring Boot Backend
+
+Pastikan file `docker-compose.yml` tersedia di root project.
+
+Contoh struktur:
+
+```text
+mini-banking
+├── src
+├── pom.xml
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+Jalankan:
+
+```bash
+docker compose up --build
+```
+
+Untuk menjalankan di background:
+
+```bash
+docker compose up --build -d
+```
+
+Cek container:
+
+```bash
+docker ps
+```
+
+Contoh container yang berjalan:
+
+```text
+banking-backend-container
+banking-mysql
+```
+
+Untuk melihat log backend:
+
+```bash
+docker logs -f banking-backend-container
+```
+
+Untuk melihat log MySQL:
+
+```bash
+docker logs -f banking-mysql
+```
+
+---
+
+# Stop Application
+
+Untuk menghentikan aplikasi:
+
+```bash
+docker compose down
+```
+
+Jika ingin menghapus volume database juga:
+
+```bash
+docker compose down -v
+```
+
+> Perhatian: `docker compose down -v` akan menghapus data MySQL yang tersimpan pada Docker volume.
+
+---
+
+# Database Configuration
+
+Aplikasi menggunakan MySQL 8.
+
+Konfigurasi database pada environment Docker:
+
+```properties
+spring.datasource.url=jdbc:mysql://mysql:3306/mini_banking
+spring.datasource.username=root
+spring.datasource.password=root
+```
+
+Hostname database menggunakan:
+
+```text
+mysql
+```
+
+Bukan:
+
+```text
+localhost
+```
+
+Karena backend dan MySQL berjalan di container Docker yang berbeda.
+
+---
+
+# Database Access
+
+Untuk masuk ke MySQL container:
+
+```bash
+docker exec -it banking-mysql mysql -uroot -p
+```
+
+Password:
+
+```text
+root
+```
+
+Setelah masuk ke MySQL:
+
+```sql
+USE mini_banking;
+```
+
+Melihat semua tabel:
+
+```sql
+SHOW TABLES;
+```
+
+Melihat data role:
+
+```sql
+SELECT * FROM roles;
+```
+
+---
+
+# Role
+
+Aplikasi memiliki dua role:
+
+```java
+ROLE_USER
+ROLE_ADMIN
+```
+
+Role disimpan di tabel:
+
+```text
+roles
+```
+
+Contoh data:
+
+```sql
+INSERT INTO roles (name)
+VALUES
+('ROLE_USER'),
+('ROLE_ADMIN');
+```
+
+Cek data:
+
+```sql
+SELECT * FROM roles;
+```
+
+Jika menggunakan MySQL Docker:
+
+```bash
+docker exec -it banking-mysql mysql -uroot -proot -e "USE mini_banking; SELECT * FROM roles;"
+```
+
+---
+
+# Application URL
+
+Backend berjalan pada port:
+
+```text
+4110
+```
+
+Context path:
+
+```text
+/api/v1/banking
+```
+
+Base URL:
+
+```text
+http://localhost:4110/api/v1/banking
+```
+
+---
+
+# API Documentation
+
+Swagger digunakan untuk melihat dan mencoba REST API.
+
+Swagger UI:
+
+```text
+http://localhost:4110/api/v1/banking/swagger-ui/index.html
+```
+
+Jika URL tersebut tidak tersedia, coba:
+
+```text
+http://localhost:4110/api/v1/banking/swagger-ui.html
+```
+
+OpenAPI JSON:
+
+```text
+http://localhost:4110/api/v1/banking/v3/api-docs
+```
+
+---
+
+# Authentication
+
+Aplikasi menggunakan JWT untuk autentikasi.
+
+Flow autentikasi:
+
+```text
+Register
+   │
+   ▼
+Login
+   │
+   ▼
+Receive JWT Token
+   │
+   ▼
+Send JWT Token
+   │
+   ▼
+Access Protected API
+```
+
+JWT dikirim melalui HTTP Header:
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# Register
+
+Endpoint:
+
+```http
+POST /auth/register
+```
+
+Full URL:
+
+```text
+http://localhost:4110/api/v1/banking/auth/register
+```
+
+Contoh request:
+
+```json
+{
+  "username": "fajar",
+  "email": "fajar@example.com",
+  "password": "password123"
+}
+```
+
+Contoh menggunakan cURL:
+
+```bash
+curl -X POST "http://localhost:4110/api/v1/banking/auth/register" \
+-H "Content-Type: application/json" \
+-d "{\"username\":\"fajar\",\"email\":\"fajar@example.com\",\"password\":\"password123\"}"
+```
+
+---
+
+# Login
+
+Endpoint:
+
+```http
+POST /auth/login
+```
+
+Full URL:
+
+```text
+http://localhost:4110/api/v1/banking/auth/login
+```
+
+Contoh request:
+
+```json
+{
+  "username": "fajar",
+  "password": "password123"
+}
+```
+
+Contoh response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+Gunakan token tersebut untuk mengakses endpoint yang membutuhkan autentikasi.
+
+Header:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+---
+
+# JWT Configuration
+
+JWT dikonfigurasi menggunakan:
+
+```properties
+jwt.secret=YOUR_SECRET_KEY
+jwt.expiration=86400000
+```
+
+Expiration:
+
+```text
+86400000 milliseconds
+```
+
+atau:
+
+```text
+24 jam
+```
+
+Untuk production, gunakan secret key yang aman dan jangan commit secret asli ke repository.
+
+Disarankan menggunakan environment variable:
+
+```properties
+jwt.secret=${JWT_SECRET}
+```
+
+---
+
+# API Endpoints
+
+## Authentication
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| POST | `/auth/register` | No |
+| POST | `/auth/login` | No |
+
+## Accounts
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| GET | `/accounts` | JWT |
+| GET | `/accounts/{id}` | JWT |
+| POST | `/accounts` | JWT |
+| PUT | `/accounts/{id}` | JWT |
+
+## Transactions
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| GET | `/transactions` | JWT |
+| GET | `/transactions/{id}` | JWT |
+| POST | `/transactions` | JWT |
+
+## Expenses
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| GET | `/expenses` | JWT |
+| GET | `/expenses/{id}` | JWT |
+| POST | `/expenses` | JWT |
+
+## Settlement
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| POST | `/settlements` | JWT |
+| GET | `/settlements/{id}` | JWT |
+
+> Detail endpoint dapat dilihat melalui Swagger UI.
+
+---
+
+# Error Handling
+
+Contoh response error:
+
+```json
+{
+  "timestamp": "2026-07-25T20:19:04.048+00:00",
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Role tidak ditemukan",
+  "path": "/api/v1/banking/auth/register"
+}
+```
+
+Untuk validasi request:
+
+```json
+{
+  "status": 400,
+  "message": "Validation failed"
+}
+```
+
+---
+
+# Local Development
+
+Jika ingin menjalankan Spring Boot tanpa Docker.
+
+Pastikan MySQL sudah berjalan terlebih dahulu.
+
+Buat database:
+
+```sql
+CREATE DATABASE mini_banking;
+```
+
+Kemudian sesuaikan konfigurasi:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/mini_banking
+spring.datasource.username=root
+spring.datasource.password=root
+```
+
+Jalankan aplikasi menggunakan Maven:
+
+```bash
+mvn spring-boot:run
+```
+
+Atau:
+
+```bash
+./mvnw spring-boot:run
+```
+
+Windows:
+
+```bash
+mvnw.cmd spring-boot:run
+```
+
+---
+
+# Build Application
+
+Build menggunakan Maven:
+
+```bash
+mvn clean package
+```
+
+Skip test:
+
+```bash
+mvn clean package -DskipTests
+```
+
+File JAR akan tersedia di:
+
+```text
+target/
+```
+
+Contoh:
+
+```text
+target/banking-0.0.1-SNAPSHOT.jar
+```
+
+---
+
+# Docker Build
+
+Build Docker image:
+
+```bash
+docker build -t banking-backend .
+```
+
+Cek image:
+
+```bash
+docker images
+```
+
+Jalankan container:
+
+```bash
+docker run --name banking-backend-container \
+-p 4110:4110 \
+banking-backend
+```
+
+Namun, jika backend membutuhkan MySQL, disarankan menggunakan Docker Compose agar backend dan database berada dalam satu Docker network.
+
+---
+
+# Docker Network
+
+Ketika menggunakan Docker Compose, backend dapat mengakses MySQL menggunakan hostname:
+
+```text
+mysql
+```
+
+Contoh:
+
+```properties
+spring.datasource.url=jdbc:mysql://mysql:3306/mini_banking
+```
+
+Jangan menggunakan:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/mini_banking
+```
+
+di dalam container backend.
+
+Karena `localhost` dari perspektif container backend mengarah ke container backend itu sendiri, bukan ke container MySQL.
+
+---
+
+# Environment Variables
+
+Konfigurasi yang disarankan untuk production:
+
+```properties
+SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/mini_banking
+SPRING_DATASOURCE_USERNAME=root
+SPRING_DATASOURCE_PASSWORD=root
+JWT_SECRET=YOUR_SECRET_KEY
+```
+
+Contoh:
+
+```bash
+docker compose up -d
+```
+
+---
+
+# Troubleshooting
+
+## MySQL Connection Refused
+
+Jika muncul:
+
+```text
+Communications link failure
+```
+
+atau:
+
+```text
+Connection refused
+```
+
+Pastikan MySQL container berjalan:
+
+```bash
+docker ps
+```
+
+Jika container berhenti:
+
+```bash
+docker ps -a
+```
+
+Lihat log:
+
+```bash
+docker logs banking-mysql
+```
+
+Restart:
+
+```bash
+docker restart banking-mysql
+```
+
+---
+
+## Port 3306 Already in Use
+
+Jika muncul:
+
+```text
+ports are not available
+```
+
+berarti port `3306` pada komputer sudah digunakan oleh MySQL atau service lain.
+
+Cek port:
+
+```cmd
+netstat -ano | findstr :3306
+```
+
+Jika backend hanya membutuhkan akses MySQL dari Docker network, MySQL sebenarnya tidak wajib diekspos ke host.
+
+Contoh:
+
+```yaml
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: banking-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mini_banking
+
+  backend:
+    build: .
+    container_name: banking-backend-container
+    ports:
+      - "4110:4110"
+    depends_on:
+      - mysql
+```
+
+Dengan konfigurasi tersebut, backend tetap dapat mengakses:
+
+```text
+mysql:3306
+```
+
+tanpa membuka:
+
+```text
+localhost:3306
+```
+
+---
+
+## Role Tidak Ditemukan
+
+Jika register menghasilkan:
+
+```text
+Role tidak ditemukan
+```
+
+pastikan role sudah tersedia:
+
+```sql
+SELECT * FROM roles;
+```
+
+Jika kosong:
+
+```sql
+INSERT INTO roles (name)
+VALUES ('ROLE_USER');
+
+INSERT INTO roles (name)
+VALUES ('ROLE_ADMIN');
+```
+
+Cek kembali:
+
+```sql
+SELECT * FROM roles;
+```
+
+---
+
+## Swagger 404
+
+Pastikan dependency Swagger/OpenAPI sudah ditambahkan.
+
+Contoh dependency:
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.8.6</version>
+</dependency>
+```
+
+Kemudian akses:
+
+```text
+http://localhost:4110/api/v1/banking/swagger-ui/index.html
+```
+
+---
+
+# Git Workflow
+
+Clone repository:
+
+```bash
+git clone <repository-url>
+```
+
+Masuk ke folder:
+
+```bash
+cd mini-banking
+```
+
+Buat branch:
+
+```bash
+git checkout -b feature/your-feature
+```
+
+Commit:
+
+```bash
+git add .
+git commit -m "feat: add banking backend"
+```
+
+Push:
+
+```bash
+git push origin feature/your-feature
+```
+
+---
+
+# GitHub Repository
+
+Sebelum push ke GitHub, pastikan file berikut tidak ikut di-commit:
+
+```text
+.env
+*.log
+target/
+.idea/
+.vscode/
+*.iml
+```
+
+Gunakan `.gitignore`.
+
+Contoh:
+
+```gitignore
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+*.log
+logs/
+
+### Environment ###
+.env
+
+### OS ###
+.DS_Store
+Thumbs.db
+```
+
+---
+
+# Security Notes
+
+Jangan commit credential asli ke GitHub.
+
+Hindari menyimpan:
+
+```properties
+spring.datasource.password=real-password
+jwt.secret=real-secret
+```
+
+Gunakan environment variable untuk production.
+
+Contoh:
+
+```properties
+spring.datasource.password=${DB_PASSWORD}
+jwt.secret=${JWT_SECRET}
+```
+
+---
+
+# API Base URL
+
+```text
+http://localhost:4110/api/v1/banking
+```
+
+Swagger:
+
+```text
+http://localhost:4110/api/v1/banking/swagger-ui/index.html
+```
+
+OpenAPI:
+
+```text
+http://localhost:4110/api/v1/banking/v3/api-docs
+```
+
+---
+
+# Author
+
+Fajar Rizki
+
+GitHub:
+
+https://github.com/fajar1411
+
+---
+
+# License
+
+This project is created for technical test and learning purposes.
