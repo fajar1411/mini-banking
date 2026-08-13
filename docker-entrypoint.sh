@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
 
-echo "Starting MySQL..."
+echo "================================="
+echo "Starting MySQL"
+echo "================================="
 
-service mysql start
+# Start MySQL
+mysqld_safe --datadir=/var/lib/mysql &
 
 echo "Waiting for MySQL..."
 
@@ -13,13 +16,21 @@ done
 
 echo "MySQL is ready."
 
+# Create database
 mysql -u root <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
 CREATE DATABASE IF NOT EXISTS mini_banking;
 EOF
 
-echo "Database mini_banking is ready."
+# Set root password
+mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+FLUSH PRIVILEGES;
+EOF
 
-echo "Starting Spring Boot..."
+echo "Database is ready."
+
+echo "================================="
+echo "Starting Spring Boot"
+echo "================================="
 
 exec java -jar /app/app.jar

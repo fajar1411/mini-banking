@@ -1,3 +1,4 @@
+# ── Stage 1: Build ──────────────────────────────────────────────────────────
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
@@ -8,12 +9,16 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 
-FROM eclipse-temurin:17-jre-jammy
+# ── Stage 2: Runtime ────────────────────────────────────────────────────────
+FROM ubuntu:22.04
 
-USER root
+ENV DEBIAN_FRONTEND=noninteractive
 
+# Install Java 17 + MySQL
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server \
+    && apt-get install -y \
+       openjdk-17-jre-headless \
+       mysql-server \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
