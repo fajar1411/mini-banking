@@ -10,24 +10,12 @@ RUN mvn clean package -DskipTests
 
 
 # ── Stage 2: Runtime ────────────────────────────────────────────────────────
-FROM ubuntu:22.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Java 17 + MySQL
-RUN apt-get update \
-    && apt-get install -y \
-       openjdk-17-jre-headless \
-       mysql-server \
-    && rm -rf /var/lib/apt/lists/*
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-
-RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 4110
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
